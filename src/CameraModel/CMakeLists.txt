@@ -1,5 +1,6 @@
 add_library(CameraModel
     Camera_Intrinsics.cpp
+    Camera_Intrinsics_Brown.cpp
 )
 
 add_executable(CameraModelTestNode

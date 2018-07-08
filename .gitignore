@@ -3,4 +3,5 @@
 .cproject
 .project
 .settings
+.ycm_extra_conf.py
 /Default/
