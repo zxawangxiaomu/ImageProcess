@@ -45,7 +45,7 @@ public:
      * @param guide_pt      指导点
      * @param sub_pixel_pt  指导点的亚像素位置
      */
-    void SubPixel(const cv::Mat& ir_img, const cv::Mat& template_img,
+    bool SubPixel(const cv::Mat& ir_img, const cv::Mat& template_img,
                   const cv::Point2f guide_pt, cv::Point2f& sub_pixel_pt);
 private:
     /**
@@ -95,8 +95,8 @@ private:
     int BiLinear(cv::Mat src, float x, float y, int defaultVal = 0);
 
 private:
-    double corse_cc_th_;    // 粗匹配相关性阈值
-    double refine_cc_th_;   // 精匹配相关系阈值
+    double corse_cc_th_ = 0.6;    // 粗匹配相关性阈值
+    double refine_cc_th_ = 0.8;   // 精匹配相关系阈值
 };
 
 #endif

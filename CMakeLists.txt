@@ -10,5 +10,5 @@ include_directories(
 )
 
 enable_testing()
-add_subdirectory(src/CameraModel)
 add_subdirectory(example)
+add_subdirectory(src)

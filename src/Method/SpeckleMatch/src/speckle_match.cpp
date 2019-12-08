@@ -1,4 +1,3 @@
-
 #include "speckle_match.h"
 #include "Eigen/Dense"
 #include <functional>
@@ -23,7 +22,11 @@ bool SpeckleMatch::TemplateMatch(const cv::Mat &ir_img, const cv::Mat &template_
     cv::matchTemplate(ir_img_gaussian(match_region), template_img, match_result, cv::TM_CCOEFF_NORMED);
     cv::Point best_point;
     double max_value = 0;
-    cv::minMaxLoc(match_result, nullptr, max_value, nullptr, &best_point);
+    cv::minMaxLoc(match_result, nullptr, &max_value, nullptr, &best_point);
+    if(max_value < corse_cc_th_)
+    {
+        return false;
+    }
     // 将坐标回归到原IR图上面
     matched_pt = best_point + match_region.tl() + cv::Point(template_half_cols, template_half_rows);
     return true;
@@ -33,7 +36,7 @@ bool SpeckleMatch::TemplateMatch(const cv::Mat &ir_img, const cv::Mat &template_
 /**
  *参考《摄影测量学》第二版p164 二、单点最小二乘影像匹配
  */
-void SpeckleMatch::SubPixel(const cv::Mat &ir_img, const cv::Mat &template_img, const cv::Point2f guide_pt, cv::Point2f &sub_pixel_pt)
+bool SpeckleMatch::SubPixel(const cv::Mat &ir_img, const cv::Mat &template_img, const cv::Point2f guide_pt, cv::Point2f &sub_pixel_pt)
 {
     // 残差模型:
     // f(x, y) + e(x, y) = h0 + h1 * g(x_, y_)
@@ -56,6 +59,7 @@ void SpeckleMatch::SubPixel(const cv::Mat &ir_img, const cv::Mat &template_img, 
     Eigen::MatrixXf A(data_num, 8);
     Eigen::VectorXf l(data_num);
     float last_coeff = 0;
+    float coeff = 0;
 
     while (true)
     {
@@ -109,7 +113,7 @@ void SpeckleMatch::SubPixel(const cv::Mat &ir_img, const cv::Mat &template_img, 
         }
 
         // 是否满足停止迭代条件---相关系数
-        float coeff = sum_g1_g2 * sum_g1_g2 / (sum_g1_sqare * sum_g2_sqare);
+        coeff = sum_g1_g2 * sum_g1_g2 / (sum_g1_sqare * sum_g2_sqare);
         if(coeff < last_coeff)
         {
             p = last_p;
@@ -141,6 +145,11 @@ void SpeckleMatch::SubPixel(const cv::Mat &ir_img, const cv::Mat &template_img, 
 
         // 更新到p中
         p << h[0], h[1], a[0], a[1], a[2], b[0], b[1], b[2];
+    }
+
+    if(coeff < refine_cc_th_)
+    {
+        return false;
     }
 	 
 	// 应用得到的几何畸变
